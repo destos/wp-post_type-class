@@ -149,7 +149,9 @@ class new_post_type{
 	    'has_archive' => true, 
 	    'hierarchical' => false,
 	    'menu_position' => null,
-	    'supports' => array( 'title','editor','author','excerpt','comments' )
+	    'supports' => array( 'title','editor','author','excerpt','comments' ),
+	    'has_archive' => strtolower( $this->post_type_plural ),
+	    'show_in_nav_menus' => true
 	  )); 
 	  
 	  register_post_type( $this->post_type, $this->args );

@@ -3,15 +3,79 @@
 // --------------------------------------------------------
 // Base for creating new post types.
 //
+class NewPostType{
+	
+	private static $_instance;
+	
+	public static $_registered_types = array();
+	
+	private static $_loc;
+	
+	public static function instance(){
+	
+		if(!isset(self::$_instance)){
+			self::$_instance = new NewPostType();
+		}
+		
+		return self::$_instance;
+	}
+	
+	public function __construct(){
+		add_action( 'admin_head', array( &$this, 'admin_head' ) );
+		//$this->$_loc = dirname(__FILE__);
+	}
+	
+	// Output post type icons.
+	public static function admin_head( ){
+	
+		if( !is_array( self::$_registered_types ))
+			return;
+		
+		?>
+		<!-- custom post type icons -->
+		<style type="text/css" media="screen">
+		<?php
+		foreach( self::$_registered_types as $type_obj ){
+		
+		$menu_icon = $type_obj->args['menu_icon'];
+		if( empty( $menu_icon ) )
+			continue;
+?>
+		#menu-posts-<?php echo $type_obj->post_type ?> .wp-menu-image {
+		    background: url(<?php echo $menu_icon ?>) no-repeat 6px -17px !important;
+		}
+		#menu-posts-<?php echo $type_obj->post_type ?> .wp-menu-image img {
+		    display: none;
+		}
+		#menu-posts-<?php echo $type_obj->post_type ?>:hover .wp-menu-image,
+		#menu-posts-<?php echo $type_obj->post_type ?>.wp-has-current-submenu .wp-menu-image {
+		    background-position:6px 7px!important;
+		}
 
-class new_post_type{
+<?php	}	?>
+		</style><?php
+	}
+		
+	public static function add( $args ){
+		
+		$type = new post_type_template( $args );
+		
+		$instance = NewPostType::instance();
+		
+		array_push( $instance::$_registered_types, &$type );
+		
+		return $type;
+	}
+
+}
+
+class post_type_template{
 
 	public $post_type = false;
 
 	public $post_type_name = false;
 	
 	public $post_type_plural = false;
-	
 	
 	public $labels = array();
 	
@@ -21,9 +85,27 @@ class new_post_type{
 	
 	public $thumbs = false;
 	
-	function __construct(){
+	function __construct( $type_args ){
 		
-		$this->post_type = (string) ($this->post_type)
+		$type_args = array_intersect_key($type_args, array_flip( array(
+			'post_type',
+			'post_type_name',
+			'post_type_plural',
+			'args',
+			'labels',
+			'messages',
+			'thumbs')));
+		
+		//print_r($type_args);
+		
+    foreach($type_args as $_key => $_value){
+        $this->$_key = $_value;
+    }
+    
+    unset($_key, $_value);
+		
+		//if( !empty($this->post_type) )
+		$this->post_type = (string) ( $this->post_type )
 			? $this->post_type
 			: get_class($this);
 			

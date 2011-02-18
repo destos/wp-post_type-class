@@ -115,7 +115,7 @@ class post_type_template{
 			
 		$this->post_type_plural = (string) ($this->post_type_plural)
 			? $this->post_type_plural
-			: ucfirst( self::pluralize( $this->post_type ) );
+			: self::pluralize( $this->post_type_name );
 		
 		add_action('init',									array ( &$this, 'thumbs' ) );
 		add_action('init',									array ( &$this, 'register' ) );

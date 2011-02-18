@@ -1,8 +1,9 @@
 <?php
 
 // --------------------------------------------------------
-// Base for creating new post types.
+// Base for creating new post types and everything realted to it.
 //
+
 class NewPostType{
 	
 	private static $_instance;
@@ -58,10 +59,10 @@ class NewPostType{
 		
 	public static function add( $args ){
 		
-		$type = new post_type_template( $args );
+		$type = new PostTypeTemplate( $args );
 		
 		$instance = NewPostType::instance();
-		
+
 		array_push( $instance::$_registered_types, &$type );
 		
 		return $type;
@@ -69,8 +70,23 @@ class NewPostType{
 
 }
 
-class post_type_template{
+// --------------------------------------------------------
+// 
+//
 
+class TaxonomyTemplate{
+	// has to check if taxonomy already exists and if it does clone its settings into template obj
+	
+	
+}
+
+// --------------------------------------------------------
+// 
+//
+
+class PostTypeTemplate{
+	
+	// public settable vars set when constructing new class
 	public $post_type = false;
 
 	public $post_type_name = false;
@@ -85,9 +101,16 @@ class post_type_template{
 	
 	public $thumbs = false;
 	
+	// private vars
+	private $_taxonomies = array();
+	
+	//
+	//  setup
+	//
 	function __construct( $type_args ){
 		
-		$type_args = array_intersect_key($type_args, array_flip( array(
+		// only allow these arguments
+		$type_args = array_intersect_key( $type_args, array_flip( array(
 			'post_type',
 			'post_type_name',
 			'post_type_plural',
@@ -104,7 +127,6 @@ class post_type_template{
     
     unset($_key, $_value);
 		
-		//if( !empty($this->post_type) )
 		$this->post_type = (string) ( $this->post_type )
 			? $this->post_type
 			: get_class($this);
@@ -115,13 +137,137 @@ class post_type_template{
 			
 		$this->post_type_plural = (string) ($this->post_type_plural)
 			? $this->post_type_plural
-			: self::pluralize( $this->post_type_name );
+			: PostTypeUtil::pluralize( $this->post_type_name );
 		
-		add_action('init',									array ( &$this, 'thumbs' ) );
-		add_action('init',									array ( &$this, 'register' ) );
-		add_filter('post_updated_messages', array ( &$this, 'update_messages' ) );
+		// handle rendering of thumbnails
+		add_action('init',									array( &$this, 'thumbs' ), 10 );
+		
+		// register any taxonomies if present.
+		add_action('init',									array( &$this, 'register_taxonomies' ), 20 );
+		
+		// register last, so arguments can be modified.
+		add_action('init',									array( &$this, 'register' ), 30 );
+		
+		// update posttypes' messages
+		add_filter('post_updated_messages', array( &$this, 'update_messages' ) );
 
 	}
+	
+	//
+	// return the posttypes' name
+	//
+	public function __toString(){
+		if( !empty($this->post_type) )
+		return $this->post_type;
+	}
+	
+	//
+	// 
+	//
+	public function thumbs(){
+	
+		// add support for thumbnails it not already present.
+		$this->add_support(array('thumbnail'));
+			
+		//register thumbnail sizes
+		if( is_array($this->thumbs) )
+			foreach( $this->thumbs as $name => $vals){
+				list( $width, $height, $crop ) = $vals;
+				add_image_size( $name, $width, $height, $crop );
+			}
+		
+	}
+	
+	//
+	// allows you to programatically add support for features you haven't specified if required.
+	//
+	public function add_support($support_arr){
+	
+		if( !is_array($support_arr))
+			return;
+			
+		$this->args['supports'] = wp_parse_args( $support_arr, $this->args['supports']);
+		
+		return $this;
+	}
+	
+	public function register_taxonomies(){
+		
+	}
+	
+	public function add_taxonomy(){
+		
+		return $this;
+	}
+	
+	public function register(){
+		
+		#TODO overides for labels and arguments.
+		$this->labels = wp_parse_args( $this->labels, array(
+	    'name' => _x( $this->post_type_plural, 'post type general name' ),
+	    'singular_name' => _x( $this->post_type_name, 'post type singular name' ),
+	    'add_new' => _x( 'Add New', $this->post_type_name ),
+	    'add_new_item' => sprintf( __( 'Add New %s') ,$this->post_type_name ),
+	    'edit_item' => sprintf( __( 'Edit %s'), $this->post_type_name ),
+	    'new_item' => sprintf( __( 'New %s'), $this->post_type_name ),
+	    'view_item' => sprintf( __( 'View %s' ), $this->post_type_name ),
+	    'search_items' => sprintf( __( 'Search %s' ), $this->post_type_plural ),
+	    'not_found' =>  sprintf( __( 'No %s found' ), strtolower( $this->post_type_plural) ),
+	    'not_found_in_trash' => sprintf( __( 'No %s found in Trash' ), strtolower( $this->post_type_plural ) ),
+	    'parent_item_colon' => '',
+	    'menu_name' =>  $this->post_type_plural
+	  ) );
+	  
+	  $this->args = wp_parse_args( $this->args, array(
+	    'labels' => $this->labels,
+	    'public' => true,
+	    'publicly_queryable' => true,
+	    'show_ui' => true, 
+	    'show_in_menu' => true, 
+	    'query_var' => true,
+	    'rewrite' => true,
+	    'capability_type' => 'post',
+	    'hierarchical' => false,
+	    'menu_position' => null,
+	    'supports' => array( 'title','editor','author','excerpt','comments' ),
+	    'has_archive' => strtolower( $this->post_type_plural ),
+	    'show_in_nav_menus' => true
+	  )); 
+	  
+	  register_post_type( $this->post_type, $this->args );
+
+	}
+	
+	public function update_messages( $messages ){
+		
+		$this->messages[ $this->post_type ] = wp_parse_args( $this->messages, array(
+			0 => '', // Unused. Messages start at index 1.
+			1 => sprintf( __('%s updated. <a href="%s">View %s</a>'), $this->post_type_name, esc_url( get_permalink($post_ID) ), strtolower( $this->post_type_name ) ),
+			2 => __('Custom field updated.'),
+			3 => __('Custom field deleted.'),
+			4 => sprintf(__('%s updated.'), $this->post_type_name),
+			/* translators: %s: date and time of the revision */
+			5 => isset($_GET['revision']) ? sprintf( __('%s restored to revision from %s'), $this->post_type_name, wp_post_revision_title( (int) $_GET['revision'], false ) ) : false,
+			6 => sprintf( __('%s published. <a href="%s">View %s</a>'), $this->post_type_name, esc_url( get_permalink($post_ID) ), strtolower( $this->post_type_name ) ),
+			7 => sprintf( __('%s saved.'), $this->post_type_name ),
+			8 => sprintf( __('%s submitted. <a target="_blank" href="%s">Preview %s</a>'), $this->post_type_name, esc_url( add_query_arg( 'preview', 'true', get_permalink($post_ID) ) ), strtolower( $this->post_type_name ) ),
+			9 => sprintf( __('%s scheduled for: <strong>%s</strong>. <a target="_blank" href="%s">Preview %s</a>'), $this->post_type_name,
+			 // translators: Publish box date format, see http://php.net/date
+			 date_i18n( __( 'M j, Y @ G:i' ), strtotime( $post->post_date ) ), esc_url( get_permalink($post_ID) ), strtolower( $this->post_type_name ) ),
+			10 => sprintf( __('%s draft updated. <a target="_blank" href="%s">Preview %s</a>'), $this->post_type_name, esc_url( add_query_arg( 'preview', 'true', get_permalink($post_ID) ) ), strtolower( $this->post_type_name ) ),
+	  ));
+	
+	  return $this->messages;
+
+	}
+
+}
+
+// --------------------------------------------------------
+// Post Type Utilities
+//
+
+class PostTypeUtil{
 	
 	public static function pluralize( $string ){
 
@@ -184,83 +330,4 @@ class post_type_template{
 		
 		return $string;
   }
-
-	public function thumbs(){
-	
-		// add support for thumbnails.
-		
-		//$this->args['supports'] = wp_parse_args( array('thumbnail'), $this->args['supports']);
-			//print_r($this->args);
-			
-		//register thumbnail sizes
-		if( is_array($this->thumbs) )
-		foreach( $this->thumbs as $name => $vals){
-			list( $width, $height, $crop ) = $vals;
-			add_image_size( $name, $width, $height, $crop );
-		}
-		
-	}
-	
-	public function register(){
-		
-		#TODO overides for labels and arguments.
-		$this->labels = wp_parse_args( $this->labels, array(
-	    'name' => _x( $this->post_type_plural, 'post type general name' ),
-	    'singular_name' => _x( $this->post_type_name, 'post type singular name' ),
-	    'add_new' => _x( 'Add New', $this->post_type_name ),
-	    'add_new_item' => sprintf( __( 'Add New %s') ,$this->post_type_name ),
-	    'edit_item' => sprintf( __( 'Edit %s'), $this->post_type_name ),
-	    'new_item' => sprintf( __( 'New %s'), $this->post_type_name ),
-	    'view_item' => sprintf( __( 'View %s' ), $this->post_type_name ),
-	    'search_items' => sprintf( __( 'Search %s' ), $this->post_type_plural ),
-	    'not_found' =>  sprintf( __( 'No %s found' ), strtolower( $this->post_type_plural) ),
-	    'not_found_in_trash' => sprintf( __( 'No %s found in Trash' ), strtolower( $this->post_type_plural ) ),
-	    'parent_item_colon' => '',
-	    'menu_name' =>  $this->post_type_plural
-	  ) );
-	  
-	  $this->args = wp_parse_args( $this->args, array(
-	    'labels' => $this->labels,
-	    'public' => true,
-	    'publicly_queryable' => true,
-	    'show_ui' => true, 
-	    'show_in_menu' => true, 
-	    'query_var' => true,
-	    'rewrite' => true,
-	    'capability_type' => 'post',
-	    'has_archive' => true, 
-	    'hierarchical' => false,
-	    'menu_position' => null,
-	    'supports' => array( 'title','editor','author','excerpt','comments' ),
-	    'has_archive' => strtolower( $this->post_type_plural ),
-	    'show_in_nav_menus' => true
-	  )); 
-	  
-	  register_post_type( $this->post_type, $this->args );
-
-	}
-	
-	public function update_messages( $messages ){
-		
-		$this->messages[ $this->post_type ] = wp_parse_args( $this->messages, array(
-	    0 => '', // Unused. Messages start at index 1.
-	    1 => sprintf( __('%s updated. <a href="%s">View %s</a>'), $this->post_type_name, esc_url( get_permalink($post_ID) ), strtolower( $this->post_type_name ) ),
-	    2 => __('Custom field updated.'),
-	    3 => __('Custom field deleted.'),
-	    4 => sprintf(__('%s updated.'), $this->post_type_name),
-	    /* translators: %s: date and time of the revision */
-	    5 => isset($_GET['revision']) ? sprintf( __('%s restored to revision from %s'), $this->post_type_name, wp_post_revision_title( (int) $_GET['revision'], false ) ) : false,
-	    6 => sprintf( __('%s published. <a href="%s">View %s</a>'), $this->post_type_name, esc_url( get_permalink($post_ID) ), strtolower( $this->post_type_name ) ),
-	    7 => sprintf( __('%s saved.'), $this->post_type_name ),
-	    8 => sprintf( __('%s submitted. <a target="_blank" href="%s">Preview %s</a>'), $this->post_type_name, esc_url( add_query_arg( 'preview', 'true', get_permalink($post_ID) ) ), strtolower( $this->post_type_name ) ),
-	    9 => sprintf( __('%s scheduled for: <strong>%s</strong>. <a target="_blank" href="%s">Preview %s</a>'), $this->post_type_name,
-	      // translators: Publish box date format, see http://php.net/date
-	      date_i18n( __( 'M j, Y @ G:i' ), strtotime( $post->post_date ) ), esc_url( get_permalink($post_ID) ), strtolower( $this->post_type_name ) ),
-	    10 => sprintf( __('%s draft updated. <a target="_blank" href="%s">Preview %s</a>'), $this->post_type_name, esc_url( add_query_arg( 'preview', 'true', get_permalink($post_ID) ) ), strtolower( $this->post_type_name ) ),
-	  ));
-	
-	  return $this->messages;
-
-	}
-
 }

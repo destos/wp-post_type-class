@@ -10,7 +10,7 @@ Author URI: http://patrick.forringer.com
 */
 
 // --------------------------------------------------------
-// Base for creating new post types and everything realted to it.
+// Base for creating new post types, logs new post types for icon support.
 //
 
 class NewPostType{
@@ -80,7 +80,7 @@ class NewPostType{
 }
 
 // --------------------------------------------------------
-// 
+// Taxonomy Template
 //
 
 class TaxonomyTemplate{
@@ -167,7 +167,7 @@ class TaxonomyTemplate{
 }
 
 // --------------------------------------------------------
-// 
+// Post Type Template
 //
 
 class PostTypeTemplate{

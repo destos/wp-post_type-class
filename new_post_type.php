@@ -28,7 +28,7 @@ class NewPostType{
 	
 	// Output post type icons.
 	public static function admin_head( ){
-	
+		
 		if( !is_array( self::$_registered_types ))
 			return;
 		
@@ -75,9 +75,86 @@ class NewPostType{
 //
 
 class TaxonomyTemplate{
-	// has to check if taxonomy already exists and if it does clone its settings into template obj
+
+	// has to check if taxonomy already exists (or is reserved term) and
+	// if it does clone its settings into template obj
 	
+	public $taxonomy;
 	
+	public $taxonomy_single;
+	
+	public $taxonomy_plural;
+	
+	public $labels = array();
+	
+	public $args = array();
+	
+	public $post_type;
+	
+	function __construct( $tax_args ){
+		
+		$tax_args = array_intersect_key( $tax_args, array_flip( array(
+			'taxonomy',
+			'taxonomy_single',
+			'taxonomy_plural',
+			'post_type',
+			'args',
+			'labels'
+		)));
+		
+    foreach($tax_args as $_key => $_value){
+        $this->$_key = $_value;
+    }
+    
+    unset( $tax_args, $_key, $_value);
+		
+		if( empty($this->taxonomy) || !is_string($this->taxonomy) )
+			return;	
+			
+		$this->taxonomy_single = (string) ($this->taxonomy_single)
+			? $this->taxonomy_single
+			: ucfirst( $this->taxonomy );
+			
+		$this->taxonomy_plural = (string) ($this->taxonomy_plural)
+			? $this->taxonomy_plural
+			: PostTypeUtil::pluralize( $this->taxonomy_single );
+		
+		// register last, so arguments can be modified.
+		add_action('init',									array( &$this, 'register' ), 10 );
+    
+	}
+	
+	function register(){
+
+		$this->labels = wp_parse_args( $this->labels, array(
+			'name' => sprintf( _x( '%s', 'taxonomy general name' ), $this->taxonomy_plural ),
+			'singular_name' => sprintf( _x( '%s', 'taxonomy singular name' ), $this->taxonomy_single ),
+			'search_items' =>  sprintf( __( 'Search %s' ), $this->taxonomy_plural ),
+			'popular_items' => sprintf( __( 'Popular %s' ), $this->taxonomy_plural ),
+			'all_items' => sprintf( __( 'All %s' ), $this->taxonomy_plural ),
+			'parent_item' => sprintf( __( 'Parent Genre' ), $this->taxonomy_single ),
+			'parent_item_colon' => sprintf( __( 'Parent Genre:' ), $this->taxonomy_single),
+			'edit_item' => sprintf( __( 'Edit %s' ), $this->taxonomy_single ), 
+			'update_item' => sprintf( __( 'Update %s' ), $this->ta_single ),
+			'add_new_item' => sprintf( __( 'Add New %s' ), $this->taxonomy_single ),
+			'new_item_name' => sprintf( __( 'New %s Name' ), $this->taxonomy_single ),
+			'separate_items_with_commas' => sprintf( __( 'Separate %s with commas' ),strtolower( $this->taxonomy_plural ) ),
+			'add_or_remove_items' => sprintf( __( 'Add or remove %s' ), strtolower( $this->taxonomy_plural ) ),
+			'choose_from_most_used' => sprintf( __( 'Choose from the most used %s' ), strtolower( $this->taxonomy_plural ) ),
+			'menu_name' => $this->taxonomy_plural
+	  ) );
+	  
+	  $this->args = wp_parse_args( $this->args, array(
+			'hierarchical' => false,
+			'labels' => $this->labels,
+			'show_ui' => true,
+			'query_var' => true,
+			'rewrite' => array( 'slug' => $this->taxonomy ),
+	  ));
+		
+		register_taxonomy( $this->taxonomy, $this->post_type, $this->args );
+		
+	}
 }
 
 // --------------------------------------------------------
@@ -101,8 +178,9 @@ class PostTypeTemplate{
 	
 	public $thumbs = false;
 	
-	// private vars
-	private $_taxonomies = array();
+	public $taxonomies = array();
+	
+	private $_registered_taxonomies = array();
 	
 	//
 	//  setup
@@ -125,11 +203,11 @@ class PostTypeTemplate{
         $this->$_key = $_value;
     }
     
-    unset($_key, $_value);
+    unset( $type_args, $_key, $_value);
 		
-		$this->post_type = (string) ( $this->post_type )
-			? $this->post_type
-			: get_class($this);
+		// require post type specified
+		if( empty($this->post_type) || !is_string($this->post_type) )
+			return;
 			
 		$this->post_type_name = (string) ($this->post_type_name)
 			? $this->post_type_name
@@ -194,11 +272,17 @@ class PostTypeTemplate{
 	}
 	
 	public function register_taxonomies(){
-		
+		//print_r( $this->_registered_taxonomies );
 	}
 	
-	public function add_taxonomy(){
+	public function add_taxonomy( $taxonomy, $args = array() ){
+	
+		$args['post_type'] = $this->post_type;
+		$args['taxonomy'] = $taxonomy;
 		
+		$taxonomy = new TaxonomyTemplate( $args );
+		
+		array_push( $this->_registered_taxonomies, $taxonomy );
 		return $this;
 	}
 	

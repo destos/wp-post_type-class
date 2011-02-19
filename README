@@ -1,14 +1,18 @@
-Usage
+This class allows you to easily add new post types and taxonomies to WordPress in a oop manner.
+plus it does some of the heavy lifting in regards to automagically creating labels and messages, along with pluralization.
+
+Example usage.
 
 NewPostType::instance()->add(array(
-'post_type' => 'member',
-'args' => array(
-		'rewrite' => array( 'slug' => 'member' ),
-		'supports' => array( 'title', 'editor', 'excerpt', 'thumbnail' ),
-		'menu_icon' => get_bloginfo('template_directory').'/functions/classes/posttype/icons/zone.png'
+	'post_type' => 'featured',
+	'args' => array(
+		'rewrite' => array( 'slug' => 'featured' ),
+		'supports' => array( 'title', 'editor', 'excerpt' ),
+		'menu_icon' => get_bloginfo('template_directory').'/functions/classes/posttype/icons/star.png'
 	),
-'thumbs' => array(
-		'member-logo-small' => array( 80, 80, true ),
-		'member-logo-large' => array( 250, 250, true )
+	'thumbs' => array(
+		'front-large' => array( 700, 260, true )
 	)
+))->add_taxonomy( 'laland', array(
+	'taxonomy_single' => 'Lalalalander'
 ));

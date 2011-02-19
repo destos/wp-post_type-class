@@ -227,7 +227,7 @@ class PostTypeTemplate{
 			: PostTypeUtil::pluralize( $this->post_type_name );
 		
 		// handle rendering of thumbnails
-		add_action('init',									array( &$this, 'thumbs' ), 10 );
+		//add_action('init',									array( &$this, 'thumbs' ), 10 );
 		
 		// register any taxonomies if present.
 		add_action('init',									array( &$this, 'register_taxonomies' ), 20 );
@@ -328,6 +328,9 @@ class PostTypeTemplate{
 	    'has_archive' => strtolower( $this->post_type_plural ),
 	    'show_in_nav_menus' => true
 	  )); 
+	  
+	  // register thumbs as we have merged the arguments
+	  $this->thumbs();
 	  
 	  register_post_type( $this->post_type, $this->args );
 

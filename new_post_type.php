@@ -1,5 +1,14 @@
 <?php
 
+/*
+Plugin Name: New Post Type
+Plugin URI: http://patrick.forringer.com/plugins/newposttype
+Description: Allows the easy creation of posttypes and taxonomies.
+Version: 1
+Author: Patrick Forringer
+Author URI: http://patrick.forringer.com
+*/
+
 // --------------------------------------------------------
 // Base for creating new post types and everything realted to it.
 //

@@ -176,7 +176,7 @@ class PostTypeTemplate{
 				list( $width, $height, $crop ) = $vals;
 				add_image_size( $name, $width, $height, $crop );
 			}
-		
+		}
 	}
 	
 	//

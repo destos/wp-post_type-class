@@ -162,15 +162,16 @@ class PostTypeTemplate{
 	}
 	
 	//
-	// 
+	// processes thumbnails
 	//
 	public function thumbs(){
-	
-		// add support for thumbnails it not already present.
-		$this->add_support(array('thumbnail'));
 			
 		//register thumbnail sizes
-		if( is_array($this->thumbs) )
+		if( is_array($this->thumbs) && !empty($this->thumbs) ){
+				
+			// add support for thumbnails it not already present.
+			$this->add_support('thumbnail');
+			
 			foreach( $this->thumbs as $name => $vals){
 				list( $width, $height, $crop ) = $vals;
 				add_image_size( $name, $width, $height, $crop );
@@ -180,11 +181,12 @@ class PostTypeTemplate{
 	
 	//
 	// allows you to programatically add support for features you haven't specified if required.
+	// accepts array or single string of values.
 	//
 	public function add_support($support_arr){
 	
 		if( !is_array($support_arr))
-			return;
+			$support_arr = (array) $support_arr;
 			
 		$this->args['supports'] = wp_parse_args( $support_arr, $this->args['supports']);
 		

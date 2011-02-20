@@ -19,8 +19,6 @@ class NewPostType{
 	
 	public static $_registered_types = array();
 	
-	private static $_loc;
-	
 	public static function instance(){
 	
 		if(!isset(self::$_instance)){
@@ -31,39 +29,55 @@ class NewPostType{
 	}
 	
 	public function __construct(){
-		add_action( 'admin_head', array( &$this, 'admin_head' ) );
-		//$this->$_loc = dirname(__FILE__);
+	
+		add_action( 'admin_head',			array( &$this, 'admin_head' ) );
+		
+		add_action( 'init',						array( &$this, 'register_columns' ), 40 ); //40 is after post types are registered
+		
+		// manage column output for new types
+		add_action("manage_posts_custom_column",	array( &$this, "column_content" ));
 	}
 	
 	// Output post type icons.
 	public static function admin_head( ){
-		
-		if( !is_array( self::$_registered_types ))
+
+		if( !is_array( self::$_registered_types ) || count(self::$_registered_types) <= 0 )
 			return;
 		
-		?>
-		<!-- custom post type icons -->
-		<style type="text/css" media="screen">
-		<?php
-		foreach( self::$_registered_types as $type_obj ){
-		
-		$menu_icon = $type_obj->args['menu_icon'];
-		if( empty( $menu_icon ) )
-			continue;
 ?>
-		#menu-posts-<?php echo $type_obj->post_type ?> .wp-menu-image {
-		    background: url(<?php echo $menu_icon ?>) no-repeat 6px -17px !important;
-		}
-		#menu-posts-<?php echo $type_obj->post_type ?> .wp-menu-image img {
-		    display: none;
-		}
-		#menu-posts-<?php echo $type_obj->post_type ?>:hover .wp-menu-image,
-		#menu-posts-<?php echo $type_obj->post_type ?>.wp-has-current-submenu .wp-menu-image {
-		    background-position:6px 7px!important;
-		}
-
+		
+<!-- custom post type icons -->
+<style type="text/css" media="screen">
+<?php
+		foreach( self::$_registered_types as $type_obj ){
+			
+			$menu_icon = $type_obj->args['menu_icon'];
+			
+			// if no menu icon skip
+			if( empty( $menu_icon ) )
+				continue;
+				
+			$post_type = str_ireplace('_','', $type_obj->post_type); // no idea why it does this
+			
+			$image_selectors[] = "#menu-posts-{$post_type} .wp-menu-image img";
+			$hov_cur_selectors[] = "#menu-posts-{$post_type}:hover .wp-menu-image,\n\t#menu-posts-{$post_type}.wp-has-current-submenu .wp-menu-image"
+?>
+	#menu-posts-<?php echo $post_type ?> .wp-menu-image {
+	    background: url(<?php echo $menu_icon ?>) no-repeat 6px -17px;
+	}
 <?php	}	?>
-		</style><?php
+	
+	<?php echo implode(",\n\t", $hov_cur_selectors)?>{
+		background-position:6px 7px;
+	}
+	
+	<?php echo implode(",\n\t", $image_selectors)?>{
+		display: none;
+	}
+	
+</style>
+<?php
+
 	}
 		
 	public static function add( $args ){
@@ -72,9 +86,85 @@ class NewPostType{
 		
 		$instance = NewPostType::instance();
 
-		array_push( $instance::$_registered_types, &$type );
+		$instance::$_registered_types[(string)$type] = &$type;
 		
 		return $type;
+	}
+	
+		
+	public function register_columns(){
+		
+		foreach( self::$_registered_types as $post_type )
+			add_filter("manage_{$post_type}_posts_columns",		array( &$this, "column_headers" ) );
+		
+		//global $wp_filters;
+		//print_r($wp_filters);
+	}
+	
+	public function column_headers( $columns ){
+		
+		$post_type = get_post_type();
+		$post_type_obj = self::$_registered_types[$post_type];
+		
+		// Add thumbnail
+		if( post_type_supports( $post_type, 'thumbnail' ) )
+			$columns['featured_thumb'] = 'Thumbnail';
+		
+		// Add registered taxonomies
+		$taxonomies = $post_type_obj->_registered_taxonomies;
+		
+		if(is_array($taxonomies) && !empty($taxonomies)){
+			foreach( $taxonomies as $tax )
+				$columns[(string)$tax] = $tax->column_header; // maybe att a 'vague' property eg. taxonomy(ies)
+		}
+		
+		//$columns['an_excerpt'] = 'Excerpt';
+	
+		#TODO try to sort columns into preferred order
+		
+		return $columns;
+	}
+	
+	// runs on manage_posts_custom_column defined in __construct
+	public function column_content($column){
+		
+		$post_type = get_post_type();
+		$taxonomies =& self::$_registered_types[$post_type]->_registered_taxonomies;
+		
+		//print_r($taxonomies);
+		
+		// find out if its a taxonomy
+		if( array_key_exists( $column, $taxonomies ) ){
+			//echo 'column is tax!';
+			$tax_slug = $column;
+			$column = 'taxonomy';
+		}
+		
+		//global $post;
+		switch ($column)
+		{
+			case "an_excerpt":
+				the_excerpt();
+				break;
+			case "featured_thumb":
+				if(has_post_thumbnail())
+					the_post_thumbnail( array(60,60) );
+				break;
+			case "taxonomy":
+				$terms = get_the_terms(get_the_ID(), $tax_slug);
+				if( $terms ){
+					$term_html = array();
+					foreach ($terms as $term)
+						array_push( $term_html, '<a href="' . get_term_link( $term->slug, $tax_slug ) . '">' . $term->name . '</a>' );
+					
+					echo implode( $term_html, ", " );
+				}
+				break;
+			case "attachments":
+				#TODO output list of attachnments
+				break;
+		}
+		
 	}
 
 }
@@ -94,6 +184,8 @@ class TaxonomyTemplate{
 	
 	public $taxonomy_plural;
 	
+	public $column_header;
+	
 	public $labels = array();
 	
 	public $args = array();
@@ -106,6 +198,7 @@ class TaxonomyTemplate{
 			'taxonomy',
 			'taxonomy_single',
 			'taxonomy_plural',
+			'column_header',
 			'post_type',
 			'args',
 			'labels'
@@ -128,9 +221,21 @@ class TaxonomyTemplate{
 			? $this->taxonomy_plural
 			: PostTypeUtil::pluralize( $this->taxonomy_single );
 		
+		$this->column_header = (string) ($this->column_header)
+			? $this->column_header
+			: $this->taxonomy_plural;
+		
 		// register last, so arguments can be modified.
 		add_action('init',									array( &$this, 'register' ), 10 );
     
+	}
+	
+	//
+	// return the posttypes' name
+	//
+	public function __toString(){
+		if( !empty($this->taxonomy) )
+			return $this->taxonomy;
 	}
 	
 	function register(){
@@ -189,7 +294,7 @@ class PostTypeTemplate{
 	
 	public $taxonomies = array();
 	
-	private $_registered_taxonomies = array();
+	public $_registered_taxonomies = array();
 	
 	//
 	//  setup
@@ -227,17 +332,17 @@ class PostTypeTemplate{
 			: PostTypeUtil::pluralize( $this->post_type_name );
 		
 		// handle rendering of thumbnails
-		//add_action('init',									array( &$this, 'thumbs' ), 10 );
+		add_action("npt_before_{$this->post_type}_register", array( &$this, 'thumbs' ), 10 );
 		
 		// register any taxonomies if present.
-		add_action('init',									array( &$this, 'register_taxonomies' ), 20 );
+		add_action('init',										array( &$this, 'register_taxonomies' ), 20 );
 		
 		// register last, so arguments can be modified.
-		add_action('init',									array( &$this, 'register' ), 30 );
+		add_action('init',										array( &$this, 'register' ), 30 );
 		
 		// update posttypes' messages
-		add_filter('post_updated_messages', array( &$this, 'update_messages' ) );
-
+		add_filter('post_updated_messages',		array( &$this, 'update_messages' ) );
+		
 	}
 	
 	//
@@ -245,7 +350,7 @@ class PostTypeTemplate{
 	//
 	public function __toString(){
 		if( !empty($this->post_type) )
-		return $this->post_type;
+			return $this->post_type;
 	}
 	
 	//
@@ -291,8 +396,13 @@ class PostTypeTemplate{
 		
 		$taxonomy = new TaxonomyTemplate( $args );
 		
-		array_push( $this->_registered_taxonomies, $taxonomy );
+		$this->_registered_taxonomies[(string)$taxonomy] =& $taxonomy;
+		
 		return $this;
+	}
+	
+	public function add_columns(){
+		
 	}
 	
 	public function register(){
@@ -311,7 +421,7 @@ class PostTypeTemplate{
 	    'not_found_in_trash' => sprintf( __( 'No %s found in Trash' ), strtolower( $this->post_type_plural ) ),
 	    'parent_item_colon' => '',
 	    'menu_name' =>  $this->post_type_plural
-	  ) );
+	  ));
 	  
 	  $this->args = wp_parse_args( $this->args, array(
 	    'labels' => $this->labels,
@@ -330,7 +440,9 @@ class PostTypeTemplate{
 	  )); 
 	  
 	  // register thumbs as we have merged the arguments
-	  $this->thumbs();
+	  //$this->thumbs();
+	  
+	  do_action( "npt_before_{$this->post_type}_register", $this->args );
 	  
 	  register_post_type( $this->post_type, $this->args );
 
@@ -408,6 +520,7 @@ class PostTypeUtil{
 			'information',
 			'equipment',
 			'featured',
+			'software',
 		);
 
 		// save some time in the case that singular and plural are the same

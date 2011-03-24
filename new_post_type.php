@@ -332,7 +332,7 @@ class PostTypeTemplate{
 			: PostTypeUtil::pluralize( $this->post_type_name );
 		
 		// handle rendering of thumbnails
-		add_action("npt_before_{$this->post_type}_register", array( &$this, 'thumbs' ), 10 );
+		add_action("npt_before_{$this->post_type}_register", array( &$this, 'register_thumbs' ), 10 );
 		
 		// register any taxonomies if present.
 		add_action('init',										array( &$this, 'register_taxonomies' ), 20 );
@@ -356,8 +356,8 @@ class PostTypeTemplate{
 	//
 	// processes thumbnails
 	//
-	public function thumbs(){
-			
+	public function register_thumbs(){
+		
 		//register thumbnail sizes
 		if( is_array($this->thumbs) && !empty($this->thumbs) ){
 				
@@ -437,12 +437,9 @@ class PostTypeTemplate{
 	    'supports' => array( 'title','editor','author','excerpt','comments' ),
 	    'has_archive' => strtolower( $this->post_type_plural ),
 	    'show_in_nav_menus' => true
-	  )); 
+	  ));
 	  
-	  // register thumbs as we have merged the arguments
-	  //$this->thumbs();
-	  
-	  do_action( "npt_before_{$this->post_type}_register", $this->args );
+	  do_action( "npt_before_{$this->post_type}_register" );
 	  
 	  register_post_type( $this->post_type, $this->args );
 

@@ -129,12 +129,11 @@ class NewPostType{
 	public function column_content($column){
 		
 		$post_type = get_post_type();
+		
 		$taxonomies =& self::$_registered_types[$post_type]->_registered_taxonomies;
-		
-		//print_r($taxonomies);
-		
+
 		// find out if its a taxonomy
-		if( array_key_exists( $column, $taxonomies ) ){
+		if( $taxonomies != null AND array_key_exists( $column, $taxonomies ) ){
 			//echo 'column is tax!';
 			$tax_slug = $column;
 			$column = 'taxonomy';

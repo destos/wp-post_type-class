@@ -359,7 +359,7 @@ class PostTypeTemplate{
 		
 		//register thumbnail sizes
 		if( is_array($this->thumbs) && !empty($this->thumbs) ){
-				
+			
 			// add support for thumbnails it not already present.
 			$this->add_support('thumbnail');
 			
@@ -378,6 +378,8 @@ class PostTypeTemplate{
 	
 		if( !is_array($support_arr))
 			$support_arr = (array) $support_arr;
+		
+		$support_arr = array_values($support_arr);
 			
 		$this->args['supports'] = wp_parse_args( $support_arr, $this->args['supports']);
 		

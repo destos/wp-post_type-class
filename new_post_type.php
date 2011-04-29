@@ -402,6 +402,25 @@ class PostTypeTemplate{
 		return $this;
 	}
 	
+	public function add_metabox( $args = array() ){
+	
+		if( class_exists('cmb_Meta_Box') ){
+		
+			$meta_args = wp_parse_args( $args, array(
+				'id' => $this->post_type.'_metabox', // TODO: auto increment
+				'title' => $this->post_type_name.' Metabox',
+				'pages' => array(  $this->post_type ), // post type
+				'context' => 'normal',
+				'priority' => 'high',
+				'show_names' => true, // Show field names on the left
+				'fields' => array()
+			));
+			
+			new cmb_Meta_Box($meta_args);
+		}
+		
+	}
+	
 	public function add_columns(){
 		
 	}

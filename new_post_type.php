@@ -85,7 +85,7 @@ class NewPostType{
 		$type = new PostTypeTemplate( $args );
 		
 		$instance = NewPostType::instance();
-
+		#TODO php version check here :: isn't supported below 5.3 apparently
 		$instance::$_registered_types[(string)$type] = &$type;
 		
 		return $type;

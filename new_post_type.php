@@ -79,14 +79,16 @@ class NewPostType{
 <?php
 
 	}
-		
+	
 	public static function add( $args ){
 		
 		$type = new PostTypeTemplate( $args );
 		
-		$instance = NewPostType::instance();
-		#TODO php version check here :: isn't supported below 5.3 apparently
-		$instance::$_registered_types[(string)$type] = &$type;
+		# :: isn't supported below 5.3 apparently
+		if(version_compare( phpversion(), '5.3', '>=')){
+			$instance = NewPostType::instance();
+			$instance::$_registered_types[(string)$type] = &$type;
+		}
 		
 		return $type;
 	}
@@ -466,6 +468,7 @@ class PostTypeTemplate{
 	}
 	
 	public function update_messages( $messages ){
+		global $post_ID, $post;
 		
 		$this->messages[ $this->post_type ] = wp_parse_args( $this->messages, array(
 			0 => '', // Unused. Messages start at index 1.

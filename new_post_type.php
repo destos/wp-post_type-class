@@ -83,12 +83,7 @@ class NewPostType{
 	public static function add( $args ){
 		
 		$type = new PostTypeTemplate( $args );
-		
-		# :: isn't supported below 5.3 apparently
-		if(version_compare( phpversion(), '5.3', '>=')){
-			$instance = NewPostType::instance();
-			$instance::$_registered_types[(string)$type] = &$type;
-		}
+		self::$_registered_types[(string)$type] = &$type;
 		
 		return $type;
 	}

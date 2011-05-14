@@ -30,12 +30,12 @@ class NewPostType{
 	
 	public function __construct(){
 	
-		add_action( 'admin_head',			array( &$this, 'admin_head' ) );
+		add_action( 'admin_head',							array( &$this, 'admin_head' ) );
 		
-		add_action( 'init',						array( &$this, 'register_columns' ), 40 ); //40 is after post types are registered
+		add_action( 'init',									array( &$this, 'register_columns' ), 40 ); //40 - after post types registered
 		
 		// manage column output for new types
-		add_action("manage_posts_custom_column",	array( &$this, "column_content" ));
+		add_action( 'manage_posts_custom_column',		array( &$this, "column_content" ));
 	}
 	
 	// Output post type icons.
@@ -57,7 +57,8 @@ class NewPostType{
 			if( empty( $menu_icon ) )
 				continue;
 				
-			$post_type = str_ireplace('_','', $type_obj->post_type); // no idea why it does this
+			// WP strips out underscores in PT name for CSS
+			$post_type = str_ireplace('_','', $type_obj->post_type);
 			
 			$image_selectors[] = "#menu-posts-{$post_type} .wp-menu-image img";
 			$hov_cur_selectors[] = "#menu-posts-{$post_type}:hover .wp-menu-image,\n\t#menu-posts-{$post_type}.wp-has-current-submenu .wp-menu-image"
@@ -94,8 +95,6 @@ class NewPostType{
 		foreach( self::$_registered_types as $post_type )
 			add_filter("manage_{$post_type}_posts_columns",		array( &$this, "column_headers" ) );
 		
-		//global $wp_filters;
-		//print_r($wp_filters);
 	}
 	
 	public function column_headers( $columns ){
@@ -112,10 +111,8 @@ class NewPostType{
 		
 		if(is_array($taxonomies) && !empty($taxonomies)){
 			foreach( $taxonomies as $tax )
-				$columns[(string)$tax] = $tax->column_header; // maybe att a 'vague' property eg. taxonomy(ies)
+				$columns[(string)$tax] = $tax->column_header;
 		}
-		
-		//$columns['an_excerpt'] = 'Excerpt';
 	
 		#TODO try to sort columns into preferred order
 		
@@ -129,14 +126,11 @@ class NewPostType{
 		
 		$taxonomies =& self::$_registered_types[$post_type]->_registered_taxonomies;
 
-		// find out if its a taxonomy
 		if( $taxonomies != null AND array_key_exists( $column, $taxonomies ) ){
-			//echo 'column is tax!';
 			$tax_slug = $column;
 			$column = 'taxonomy';
 		}
 		
-		//global $post;
 		switch ($column)
 		{
 			case "an_excerpt":
@@ -151,8 +145,9 @@ class NewPostType{
 				if( $terms ){
 					$term_html = array();
 					foreach ($terms as $term)
+						#TODO get admin link instead of front.
 						array_push( $term_html, '<a href="' . get_term_link( $term->slug, $tax_slug ) . '">' . $term->name . '</a>' );
-					
+						
 					echo implode( $term_html, ", " );
 				}
 				break;
@@ -171,8 +166,7 @@ class NewPostType{
 
 class TaxonomyTemplate{
 
-	// has to check if taxonomy already exists (or is reserved term) and
-	// if it does clone its settings into template obj
+	// TODO has to check if taxonomy already exists (or is reserved term) and if it does clone its settings into template obj
 	
 	public $taxonomy;
 	
@@ -222,7 +216,7 @@ class TaxonomyTemplate{
 			: $this->taxonomy_plural;
 		
 		// register last, so arguments can be modified.
-		add_action('init',									array( &$this, 'register' ), 10 );
+		add_action('init', array( &$this, 'register' ), 10 );
     
 	}
 	
@@ -328,16 +322,16 @@ class PostTypeTemplate{
 			: PostTypeUtil::pluralize( $this->post_type_name );
 		
 		// handle rendering of thumbnails
-		add_action("npt_before_{$this->post_type}_register", array( &$this, 'register_thumbs' ), 10 );
+		add_action("npt_before_{$this->post_type}_register",	array( &$this, 'register_thumbs' ), 10 );
 		
 		// register any taxonomies if present.
-		add_action('init',										array( &$this, 'register_taxonomies' ), 20 );
+		add_action('init',												array( &$this, 'register_taxonomies' ), 20 );
 		
 		// register last, so arguments can be modified.
-		add_action('init',										array( &$this, 'register' ), 30 );
+		add_action('init',												array( &$this, 'register' ), 30 );
 		
 		// update posttypes' messages
-		add_filter('post_updated_messages',		array( &$this, 'update_messages' ) );
+		add_filter('post_updated_messages',							array( &$this, 'update_messages' ) );
 		
 	}
 	

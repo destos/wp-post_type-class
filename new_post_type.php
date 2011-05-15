@@ -44,11 +44,27 @@ class NewPostType{
 		if( !is_array( self::$_registered_types ) || count(self::$_registered_types) <= 0 )
 			return;
 		
-?>
-		
+		$image_background_tmpl = '
+	#menu-posts-:post_type .wp-menu-image {
+	    background: url(:menu_icon ) no-repeat 6px -17px;
+	}
+';
+		$output = '
 <!-- custom post type icons -->
 <style type="text/css" media="screen">
-<?php
+	
+	:image_backgrounds
+	
+	:hov_cur_selectors{
+		background-position:6px 7px;
+	}
+	
+	:image_selectors{
+		display: none;
+	}
+	
+</style>
+';
 		foreach( self::$_registered_types as $type_obj ){
 			
 			$menu_icon = $type_obj->args['menu_icon'];
@@ -60,23 +76,17 @@ class NewPostType{
 			$post_type = str_ireplace('_','', $type_obj->post_type); // no idea why it does this
 			
 			$image_selectors[] = "#menu-posts-{$post_type} .wp-menu-image img";
-			$hov_cur_selectors[] = "#menu-posts-{$post_type}:hover .wp-menu-image,\n\t#menu-posts-{$post_type}.wp-has-current-submenu .wp-menu-image"
-?>
-	#menu-posts-<?php echo $post_type ?> .wp-menu-image {
-	    background: url(<?php echo $menu_icon ?>) no-repeat 6px -17px;
-	}
-<?php	}	?>
-	
-	<?php echo implode(",\n\t", $hov_cur_selectors)?>{
-		background-position:6px 7px;
-	}
-	
-	<?php echo implode(",\n\t", $image_selectors)?>{
-		display: none;
-	}
-	
-</style>
-<?php
+			$hov_cur_selectors[] = "#menu-posts-{$post_type}:hover .wp-menu-image,\n\t#menu-posts-{$post_type}.wp-has-current-submenu .wp-menu-image";
+			
+			$image_backgrounds[] = str_replace(array(':menu_icon',':post_type'),array( $menu_icon, $post_type),$image_background_tmpl);
+			
+		}
+		
+		$image_backgrounds = implode("\n",$image_backgrounds);
+		$hov_cur_selectors = implode(",\n\t",$hov_cur_selectors);
+		$image_selectors = implode(",\n\t",$image_selectors);
+		
+		echo str_replace(array(':image_backgrounds',':hov_cur_selectors',':image_selectors'),array($image_backgrounds,$hov_cur_selectors,$image_selectors), $output );
 
 	}
 	

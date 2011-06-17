@@ -3,7 +3,7 @@
 /*
 Plugin Name: New Post Type
 Plugin URI: http://patrick.forringer.com/plugins/newposttype
-Description: Allows the easy creation of posttypes and taxonomies.
+Description: Allows for the easy creation of post types and taxonomies.
 Version: 1
 Author: Patrick Forringer
 Author URI: http://patrick.forringer.com

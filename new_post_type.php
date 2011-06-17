@@ -53,6 +53,10 @@ class NewPostType{
 <!-- custom post type icons -->
 <style type="text/css" media="screen">
 	
+	.wp-menu-image{
+		overflow: hidden;
+	}
+	
 	:image_backgrounds
 	
 	:hov_cur_selectors{

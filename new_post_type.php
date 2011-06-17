@@ -253,7 +253,7 @@ class TaxonomyTemplate{
 			'parent_item' => sprintf( __( 'Parent Genre' ), $this->taxonomy_single ),
 			'parent_item_colon' => sprintf( __( 'Parent Genre:' ), $this->taxonomy_single),
 			'edit_item' => sprintf( __( 'Edit %s' ), $this->taxonomy_single ), 
-			'update_item' => sprintf( __( 'Update %s' ), $this->ta_single ),
+			'update_item' => sprintf( __( 'Update %s' ), $this->taxonomy_single ),
 			'add_new_item' => sprintf( __( 'Add New %s' ), $this->taxonomy_single ),
 			'new_item_name' => sprintf( __( 'New %s Name' ), $this->taxonomy_single ),
 			'separate_items_with_commas' => sprintf( __( 'Separate %s with commas' ),strtolower( $this->taxonomy_plural ) ),

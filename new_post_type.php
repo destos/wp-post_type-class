@@ -235,7 +235,7 @@ class TaxonomyTemplate{
 	}
 	
 	//
-	// return the posttypes' name
+	// return the taxonomies name
 	//
 	public function __toString(){
 		if( !empty($this->taxonomy) )

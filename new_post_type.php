@@ -468,6 +468,9 @@ class PostTypeTemplate{
 	  
 	  register_post_type( $this->post_type, $this->args );
 
+		if ( !empty($this->args['rewrite']) )
+			flush_rewrite_rules();
+			
 	}
 	
 	public function update_messages( $messages ){

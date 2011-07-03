@@ -30,12 +30,12 @@ class NewPostType{
 	
 	public function __construct(){
 	
-		add_action( 'admin_head',							array( &$this, 'admin_head' ) );
+		add_action( 'admin_head', array( &$this, 'admin_head' ) );
 		
-		add_action( 'init',									array( &$this, 'register_columns' ), 40 ); //40 - after post types registered
+		add_action( 'init', array( &$this, 'register_columns' ), 40 ); //40 - after post types registered
 		
 		// manage column output for new types
-		add_action( 'manage_posts_custom_column',		array( &$this, "column_content" ));
+		add_action( 'manage_posts_custom_column', array( &$this, "column_content" ));
 	}
 	
 	// Output post type icons.
@@ -208,11 +208,11 @@ class TaxonomyTemplate{
 			'labels'
 		)));
 		
-    foreach($tax_args as $_key => $_value){
-        $this->$_key = $_value;
-    }
-    
-    unset( $tax_args, $_key, $_value);
+		foreach($tax_args as $_key => $_value){
+			$this->$_key = $_value;
+		}
+		
+		unset( $tax_args, $_key, $_value);
 		
 		if( empty($this->taxonomy) || !is_string($this->taxonomy) )
 			return;	
@@ -317,11 +317,11 @@ class PostTypeTemplate{
 		
 		//print_r($type_args);
 		
-    foreach($type_args as $_key => $_value){
-        $this->$_key = $_value;
-    }
-    
-    unset( $type_args, $_key, $_value);
+		foreach($type_args as $_key => $_value){
+			$this->$_key = $_value;
+		}
+		
+		unset( $type_args, $_key, $_value);
 		
 		// require post type specified
 		if( empty($this->post_type) || !is_string($this->post_type) )
@@ -434,40 +434,40 @@ class PostTypeTemplate{
 		
 		#TODO overides for labels and arguments.
 		$this->labels = wp_parse_args( $this->labels, array(
-	    'name' => _x( $this->post_type_plural, 'post type general name' ),
-	    'singular_name' => _x( $this->post_type_name, 'post type singular name' ),
-	    'add_new' => _x( 'Add New', $this->post_type_name ),
-	    'add_new_item' => sprintf( __( 'Add New %s') ,$this->post_type_name ),
-	    'edit_item' => sprintf( __( 'Edit %s'), $this->post_type_name ),
-	    'new_item' => sprintf( __( 'New %s'), $this->post_type_name ),
-	    'view_item' => sprintf( __( 'View %s' ), $this->post_type_name ),
-	    'search_items' => sprintf( __( 'Search %s' ), $this->post_type_plural ),
-	    'not_found' =>  sprintf( __( 'No %s found' ), strtolower( $this->post_type_plural) ),
-	    'not_found_in_trash' => sprintf( __( 'No %s found in Trash' ), strtolower( $this->post_type_plural ) ),
-	    'parent_item_colon' => '',
-	    'menu_name' =>  $this->post_type_plural
-	  ));
-	  
-	  $this->args = wp_parse_args( $this->args, array(
-	    'labels' => $this->labels,
-	    'public' => true,
-	    'publicly_queryable' => true,
-	    'show_ui' => true, 
-	    'show_in_menu' => true, 
-	    'query_var' => true,
-	    'rewrite' => true,
-	    'capability_type' => 'post',
-	    'hierarchical' => false,
-	    'menu_position' => null,
-	    'supports' => array( 'title','editor','author','excerpt','comments' ),
-	    'has_archive' => strtolower( $this->post_type_plural ),
-	    'show_in_nav_menus' => true
-	  ));
-	  
-	  do_action( "npt_before_{$this->post_type}_register" );
-	  
-	  register_post_type( $this->post_type, $this->args );
-
+			'name' => _x( $this->post_type_plural, 'post type general name' ),
+			'singular_name' => _x( $this->post_type_name, 'post type singular name' ),
+			'add_new' => _x( 'Add New', $this->post_type_name ),
+			'add_new_item' => sprintf( __( 'Add New %s') ,$this->post_type_name ),
+			'edit_item' => sprintf( __( 'Edit %s'), $this->post_type_name ),
+			'new_item' => sprintf( __( 'New %s'), $this->post_type_name ),
+			'view_item' => sprintf( __( 'View %s' ), $this->post_type_name ),
+			'search_items' => sprintf( __( 'Search %s' ), $this->post_type_plural ),
+			'not_found' =>  sprintf( __( 'No %s found' ), strtolower( $this->post_type_plural) ),
+			'not_found_in_trash' => sprintf( __( 'No %s found in Trash' ), strtolower( $this->post_type_plural ) ),
+			'parent_item_colon' => '',
+			'menu_name' =>  $this->post_type_plural
+		));
+		
+		$this->args = wp_parse_args( $this->args, array(
+			'labels' => $this->labels,
+			'public' => true,
+			'publicly_queryable' => true,
+			'show_ui' => true, 
+			'show_in_menu' => true, 
+			'query_var' => true,
+			'rewrite' => true,
+			'capability_type' => 'post',
+			'hierarchical' => false,
+			'menu_position' => null,
+			'supports' => array( 'title','editor','author','excerpt','comments' ),
+			'has_archive' => strtolower( $this->post_type_plural ),
+			'show_in_nav_menus' => true
+		));
+		
+		do_action( "npt_before_{$this->post_type}_register" );
+		
+		register_post_type( $this->post_type, $this->args );
+		
 		if ( !empty($this->args['rewrite']) )
 			flush_rewrite_rules();
 			
@@ -488,13 +488,13 @@ class PostTypeTemplate{
 			7 => sprintf( __('%s saved.'), $this->post_type_name ),
 			8 => sprintf( __('%s submitted. <a target="_blank" href="%s">Preview %s</a>'), $this->post_type_name, esc_url( add_query_arg( 'preview', 'true', get_permalink($post_ID) ) ), strtolower( $this->post_type_name ) ),
 			9 => sprintf( __('%s scheduled for: <strong>%s</strong>. <a target="_blank" href="%s">Preview %s</a>'), $this->post_type_name,
-			 // translators: Publish box date format, see http://php.net/date
-			 date_i18n( __( 'M j, Y @ G:i' ), strtotime( $post->post_date ) ), esc_url( get_permalink($post_ID) ), strtolower( $this->post_type_name ) ),
+				// translators: Publish box date format, see http://php.net/date
+				date_i18n( __( 'M j, Y @ G:i' ), strtotime( $post->post_date ) ), esc_url( get_permalink($post_ID) ), strtolower( $this->post_type_name ) ),
 			10 => sprintf( __('%s draft updated. <a target="_blank" href="%s">Preview %s</a>'), $this->post_type_name, esc_url( add_query_arg( 'preview', 'true', get_permalink($post_ID) ) ), strtolower( $this->post_type_name ) ),
-	  ));
+		));
 	
-	  return $this->messages;
-
+	return $this->messages;
+	
 	}
 
 }
@@ -506,65 +506,65 @@ class PostTypeTemplate{
 class PostTypeUtil{
 	
 	public static function pluralize( $string ){
-
-    $plural = array(
-		array( '/(quiz)$/i',               "$1zes"   ),
-		array( '/^(ox)$/i',                "$1en"    ),
-		array( '/([m|l])ouse$/i',          "$1ice"   ),
-		array( '/(matr|vert|ind)ix|ex$/i', "$1ices"  ),
-		array( '/(x|ch|ss|sh)$/i',         "$1es"    ),
-		array( '/([^aeiouy]|qu)y$/i',      "$1ies"   ),
-		array( '/([^aeiouy]|qu)ies$/i',    "$1y"     ),
-		array( '/(hive)$/i',               "$1s"     ),
-		array( '/(?:([^f])fe|([lr])f)$/i', "$1$2ves" ),
-		array( '/sis$/i',                  "ses"     ),
-		array( '/([ti])um$/i',             "$1a"     ),
-		array( '/(buffal|tomat)o$/i',      "$1oes"   ),
-		array( '/(bu)s$/i',                "$1ses"   ),
-		array( '/(alias|status)$/i',       "$1es"    ),
-		array( '/(octop|vir)us$/i',        "$1i"     ),
-		array( '/(ax|test)is$/i',          "$1es"    ),
-		array( '/s$/i',                    "s"       ),
-		array( '/$/',                      "s"       )
-	);
-
-	$irregular = array(
-		array( 'move',   'moves'    ),
-		array( 'sex',    'sexes'    ),
-		array( 'child',  'children' ),
-		array( 'man',    'men'      ),
-		array( 'person', 'people'   )
-	);
-
-	$uncountable = array( 
-		'sheep', 
-		'fish',
-		'series',
-		'species',
-		'money',
-		'rice',
-		'information',
-		'equipment',
-		'featured',
-		'software',
-	);
-
-	// save some time in the case that singular and plural are the same
-	if ( in_array( strtolower( $string ), $uncountable ) )
+		
+		$plural = array(
+			array( '/(quiz)$/i',               "$1zes"   ),
+			array( '/^(ox)$/i',                "$1en"    ),
+			array( '/([m|l])ouse$/i',          "$1ice"   ),
+			array( '/(matr|vert|ind)ix|ex$/i', "$1ices"  ),
+			array( '/(x|ch|ss|sh)$/i',         "$1es"    ),
+			array( '/([^aeiouy]|qu)y$/i',      "$1ies"   ),
+			array( '/([^aeiouy]|qu)ies$/i',    "$1y"     ),
+			array( '/(hive)$/i',               "$1s"     ),
+			array( '/(?:([^f])fe|([lr])f)$/i', "$1$2ves" ),
+			array( '/sis$/i',                  "ses"     ),
+			array( '/([ti])um$/i',             "$1a"     ),
+			array( '/(buffal|tomat)o$/i',      "$1oes"   ),
+			array( '/(bu)s$/i',                "$1ses"   ),
+			array( '/(alias|status)$/i',       "$1es"    ),
+			array( '/(octop|vir)us$/i',        "$1i"     ),
+			array( '/(ax|test)is$/i',          "$1es"    ),
+			array( '/s$/i',                    "s"       ),
+			array( '/$/',                      "s"       )
+		);
+		
+		$irregular = array(
+			array( 'move',   'moves'    ),
+			array( 'sex',    'sexes'    ),
+			array( 'child',  'children' ),
+			array( 'man',    'men'      ),
+			array( 'person', 'people'   )
+		);
+		
+		$uncountable = array( 
+			'sheep', 
+			'fish',
+			'series',
+			'species',
+			'money',
+			'rice',
+			'information',
+			'equipment',
+			'featured',
+			'software',
+		);
+		
+		// save some time in the case that singular and plural are the same
+		if ( in_array( strtolower( $string ), $uncountable ) )
+			return $string;
+			
+		// check for irregular singular forms
+		foreach ( $irregular as $noun ){
+			if ( strtolower( $string ) == $noun[0] )
+			return $noun[1];
+		}
+		
+		// check for matches using regular expressions
+		foreach ( $plural as $pattern ){
+			if ( preg_match( $pattern[0], $string ) )
+			return preg_replace( $pattern[0], $pattern[1], $string );
+		}
+		
 		return $string;
-	
-	// check for irregular singular forms
-	foreach ( $irregular as $noun ){
-		if ( strtolower( $string ) == $noun[0] )
-		return $noun[1];
 	}
-	
-	// check for matches using regular expressions
-	foreach ( $plural as $pattern ){
-		if ( preg_match( $pattern[0], $string ) )
-		return preg_replace( $pattern[0], $pattern[1], $string );
-	}
-	
-	return $string;
-  }
 }

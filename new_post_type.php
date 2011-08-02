@@ -71,7 +71,7 @@ class NewPostType{
 ';
 		foreach( self::$_registered_types as $type_obj ){
 			
-			$menu_icon = $type_obj->args['menu_icon'];
+			$menu_icon = @$type_obj->args['menu_icon'];
 			
 			// if no menu icon skip
 			if( empty( $menu_icon ) )

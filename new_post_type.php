@@ -107,7 +107,7 @@ class NewPostType{
 	public function register_columns(){
 		
 		foreach( self::$_registered_types as $post_type )
-			add_filter("manage_{$post_type}_posts_columns",		array( &$this, "column_headers" ) );
+			add_filter("manage_{$post_type}_posts_columns", array( &$this, "column_headers" ) );
 		
 	}
 	
@@ -156,17 +156,30 @@ class NewPostType{
 				break;
 			case "taxonomy":
 				$terms = get_the_terms(get_the_ID(), $tax_slug);
-				if( $terms ){
-					$term_html = array();
-					foreach ($terms as $term)
-						#TODO get admin link instead of front.
-						array_push( $term_html, '<a href="' . get_term_link( $term->slug, $tax_slug ) . '">' . $term->name . '</a>' );
-						
-					echo implode( $term_html, ", " );
+				
+				// http://devpress.com/blog/custom-columns-for-custom-post-types/
+				if ( !empty( $terms ) ) {
+					$out = array();
+					/* Loop through each term, linking to the 'edit posts' page for the specific term. */
+					foreach ( $terms as $term ) {
+						$out[] = sprintf( '<a href="%s">%s</a>',
+							esc_url( add_query_arg( array( 'post_type' => $post_type, $tax_slug => $term->slug ), 'edit.php' ) ),
+							esc_html( sanitize_term_field( 'name', $term->name, $term->term_id, $tax_slug, 'display' ) )
+						);
+					}
+					/* Join the terms, separating them with a comma. */
+					echo join( ', ', $out );
 				}
+				/* If no terms were found, output a default message. */
+				else {
+					_e( 'None' );
+				}
+				
 				break;
 			case "attachments":
 				#TODO output list of attachnments
+				break;
+			default:
 				break;
 		}
 		

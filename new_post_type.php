@@ -114,18 +114,20 @@ class NewPostType{
 	public function column_headers( $columns ){
 		
 		$post_type = get_post_type();
-		$post_type_obj = self::$_registered_types[$post_type];
+		if($post_type){
+			$post_type_obj = self::$_registered_types[$post_type];
 		
-		// Add thumbnail
-		if( post_type_supports( $post_type, 'thumbnail' ) )
-			$columns['featured_thumb'] = 'Thumbnail';
+			// Add thumbnail
+			if( post_type_supports( $post_type, 'thumbnail' ) )
+				$columns['featured_thumb'] = 'Thumbnail';
 		
-		// Add registered taxonomies
-		$taxonomies = $post_type_obj->_registered_taxonomies;
+			// Add registered taxonomies
+			$taxonomies = $post_type_obj->_registered_taxonomies;
 		
-		if(is_array($taxonomies) && !empty($taxonomies)){
-			foreach( $taxonomies as $tax )
-				$columns[(string)$tax] = $tax->column_header;
+			if(is_array($taxonomies) && !empty($taxonomies)){
+				foreach( $taxonomies as $tax )
+					$columns[(string)$tax] = $tax->column_header;
+			}			
 		}
 	
 		#TODO try to sort columns into preferred order

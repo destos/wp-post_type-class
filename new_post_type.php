@@ -68,7 +68,11 @@ class NewPostType{
 	}
 	
 </style>
-';
+';		
+		$image_backgrounds = array();
+		$hov_cur_selectors = array();
+		$image_selectors = array();
+		
 		foreach( self::$_registered_types as $type_obj ){
 			
 			$menu_icon = @$type_obj->args['menu_icon'];

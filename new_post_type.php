@@ -82,7 +82,7 @@ class NewPostType{
 				continue;
 				
 			// WP strips out underscores in PT name for CSS
-			$post_type = str_ireplace('_','', $type_obj->post_type);
+			$post_type = $type_obj->post_type;
 			
 			$image_selectors[] = "#menu-posts-{$post_type} .wp-menu-image img";
 			$hov_cur_selectors[] = "#menu-posts-{$post_type}:hover .wp-menu-image,\n\t#menu-posts-{$post_type}.wp-has-current-submenu .wp-menu-image";
